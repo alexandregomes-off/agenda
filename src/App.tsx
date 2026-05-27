@@ -34,7 +34,7 @@ export default function App() {
     return [
       {
         id: 'init-1',
-        title: 'Formatar e enviar relatório de missões pendentes',
+        titulo: 'Formatar e enviar relatório de missões pendentes',
         category: 'Work' as TaskCategory,
         completed: false,
         due_date: getOffsetDateStr(0), // Today
@@ -44,7 +44,7 @@ export default function App() {
       },
       {
         id: 'init-2',
-        title: 'Realizar matrícula do curso presencial e pagar boleto',
+        titulo: 'Realizar matrícula do curso presencial e pagar boleto',
         category: 'Personal' as TaskCategory,
         completed: false,
         due_date: getOffsetDateStr(-2), // 2 days ago (overdue)
@@ -54,7 +54,7 @@ export default function App() {
       },
       {
         id: 'init-3',
-        title: 'Comprar suprimentos de rancho e mantimentos',
+        titulo: 'Comprar suprimentos de rancho e mantimentos',
         category: 'Shopping' as TaskCategory,
         completed: false,
         due_date: getOffsetDateStr(3), // 3 days left
@@ -63,7 +63,7 @@ export default function App() {
       },
       {
         id: 'init-4',
-        title: 'Enviar arquivo Cia consolidado anual',
+        titulo: 'Enviar arquivo Cia consolidado anual',
         category: 'Work' as TaskCategory,
         completed: true,
         due_date: getOffsetDateStr(-1),
@@ -124,7 +124,7 @@ export default function App() {
           if (data.length > 0 && cols.length === 0) {
             setKnownColumns(Object.keys(data[0]));
           } else if (cols.length === 0) {
-            setKnownColumns(['id', 'title', 'category', 'completed', 'due_date', 'created_at', 'completed_at', 'deleted', 'notes', 'user_id']);
+            setKnownColumns(['id', 'titulo', 'category', 'completed', 'due_date', 'created_at', 'completed_at', 'deleted', 'notes', 'user_id', 'created_id', 'status', 'deleted_at']);
           }
 
           // Segregate tasks for the logged-in user
@@ -234,7 +234,7 @@ export default function App() {
 
     const newTask: Task = {
       id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      title: data.title,
+      titulo: data.title,
       category: data.category,
       completed: false,
       due_date: data.due_date,

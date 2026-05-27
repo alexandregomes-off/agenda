@@ -151,7 +151,7 @@ export default function TaskCard({
             task.completed ? 'text-slate-400 line-through' : 'text-slate-800'
           }`}
         >
-          {task.title}
+          {task.titulo}
         </p>
 
         {/* Notes details */}
