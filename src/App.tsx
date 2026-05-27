@@ -124,7 +124,7 @@ export default function App() {
           if (data.length > 0 && cols.length === 0) {
             setKnownColumns(Object.keys(data[0]));
           } else if (cols.length === 0) {
-            setKnownColumns(['id', 'titulo', 'category', 'completed', 'due_date', 'created_at', 'completed_at', 'deleted', 'notes', 'user_id', 'created_id', 'status', 'deleted_at']);
+            setKnownColumns(['id', 'titulo', 'category', 'completed', 'due_date', 'created_at', 'completed_at', 'deleted', 'notes', 'user_id', 'status', 'deleted_at']);
           }
 
           // Segregate tasks for the logged-in user

@@ -6,7 +6,6 @@ export interface Task {
   category: TaskCategory;
   completed: boolean;
   due_date: string; // "YYYY-MM-DD" style, or "" for sem prazo
-  created_id?: string;
   created_at?: string; // ISO string
   completed_at?: string; // ISO string for tracking when completed
   deleted: boolean; // sent to trash

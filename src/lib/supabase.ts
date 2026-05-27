@@ -52,7 +52,6 @@ export function mapFromDb(dbRow: any): Task {
     category: dbRow.category || dbRow.categoria || 'Work',
     completed: !!(dbRow.completed ?? dbRow.concluido ?? dbRow.concluida),
     due_date: dbRow.due_date || dbRow.dueDate || dbRow.data_vencimento || dbRow.vencimento || '',
-    created_id: dbRow.created_id || undefined,
     created_at: dbRow.created_at || dbRow.createdAt || dbRow.data_criacao || new Date().toISOString(),
     completed_at: dbRow.completed_at || dbRow.completedAt || dbRow.data_conclusao || undefined,
     deleted: !!(dbRow.deleted ?? dbRow.deletado ?? dbRow.excluido),
@@ -80,7 +79,7 @@ export function mapToDb(task: Task, userId?: string, isInsert = false): any {
   // If knownColumns is populated, we map to those columns specifically.
   // Otherwise, we default strictly to the user's exact "tarefas" column list.
   const cols = knownColumns.length > 0 ? knownColumns : [
-    'titulo', 'category', 'due_date', 'notes', 'completed', 'deleted', 'user_id', 'created_at', 'completed_at', 'created_id', 'status', 'deleted_at'
+    'titulo', 'category', 'due_date', 'notes', 'completed', 'deleted', 'user_id', 'created_at', 'completed_at', 'status', 'deleted_at'
   ];
 
   if (!isInsert && isNumeric(task.id)) {
@@ -148,10 +147,6 @@ export function mapToDb(task: Task, userId?: string, isInsert = false): any {
     payload.completedAt = valOrNull(task.completed_at);
   } else if (cols.includes('data_conclusao')) {
     payload.data_conclusao = valOrNull(task.completed_at);
-  }
-
-  if (cols.includes('created_id')) {
-    payload.created_id = valOrNull(task.created_id);
   }
 
   if (cols.includes('status')) {
