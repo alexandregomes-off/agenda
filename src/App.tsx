@@ -6,7 +6,7 @@ import TaskForm from './components/TaskForm';
 import TaskCard from './components/TaskCard';
 import BulkTrashActions from './components/BulkTrashActions';
 import AuthScreen from './components/AuthScreen';
-import { supabase, mapFromDb, mapToDb, setKnownColumns, discoverColumns } from './lib/supabase';
+import { supabase, mapFromDb, mapToDb, setKnownColumns, discoverColumns, isNumeric } from './lib/supabase';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -147,19 +147,26 @@ export default function App() {
             if (saved) {
               const parsed = JSON.parse(saved);
               if (parsed.length > 0) {
-                const mapped = parsed.map((t: Task) => mapToDb(t, user.id));
-                await supabase.from('tarefas').insert(mapped);
-                setTasks(parsed);
-                showStatus('Planos locais migrados para a Nuvem!');
-                return;
+                const mapped = parsed.map((t: Task) => mapToDb(t, user.id, true));
+                const { data: insertedData, error: insertError } = await supabase.from('tarefas').insert(mapped).select();
+                if (!insertError && insertedData) {
+                  const savedTasks = insertedData.map(mapFromDb);
+                  setTasks(savedTasks);
+                  showStatus('Planos locais migrados para a Nuvem!');
+                  return;
+                }
               }
             }
             
             // Empty DB/User list - insert default list under current user ID
             const initial = getInitialTasks();
-            const mapped = initial.map((t: Task) => mapToDb(t, user.id));
-            await supabase.from('tarefas').insert(mapped);
-            setTasks(initial);
+            const mapped = initial.map((t: Task) => mapToDb(t, user.id, true));
+            const { data: insertedData } = await supabase.from('tarefas').insert(mapped).select();
+            if (insertedData && insertedData.length > 0) {
+              setTasks(insertedData.map(mapFromDb));
+            } else {
+              setTasks(initial);
+            }
           } else {
             const parsed = userTasks.map(mapFromDb);
             setTasks(parsed);
@@ -240,10 +247,17 @@ export default function App() {
     setTasks((prev) => [newTask, ...prev]);
     showStatus('Sincronizando missão com a nuvem...');
 
-    const { error } = await supabase.from('tarefas').insert([mapToDb(newTask, user?.id)]);
+    const dbPayload = mapToDb(newTask, user?.id, true);
+    const { data: insertedData, error } = await supabase.from('tarefas').insert([dbPayload]).select();
     if (error) {
       console.error('Insert Supabase error:', error);
       showStatus('Sincronizado localmente (offline).', true);
+    } else if (insertedData && insertedData.length > 0) {
+      const savedTask = mapFromDb(insertedData[0]);
+      setTasks((prev) =>
+        prev.map((t) => (t.id === newTask.id ? savedTask : t))
+      );
+      showStatus('Missão adicionada à nuvem!');
     } else {
       showStatus('Missão adicionada à nuvem!');
     }
@@ -272,10 +286,11 @@ export default function App() {
     if (targetTask) {
       showStatus(targetTask.completed ? 'Plano concluído! Muito bem.' : 'Plano reaberto.');
 
+      const dbId = isNumeric(id) ? Number(id) : id;
       const { error } = await supabase
         .from('tarefas')
         .update(mapToDb(targetTask, user?.id))
-        .eq('id', id);
+        .eq('id', dbId);
 
       if (error) {
         console.error('Supabase toggle error:', error);
@@ -301,10 +316,11 @@ export default function App() {
     showStatus('Plano enviado para a lixeira.');
 
     if (targetTask) {
+      const dbId = isNumeric(id) ? Number(id) : id;
       const { error } = await supabase
         .from('tarefas')
         .update(mapToDb(targetTask, user?.id))
-        .eq('id', id);
+        .eq('id', dbId);
 
       if (error) {
         console.error('Supabase soft delete error:', error);
@@ -331,10 +347,11 @@ export default function App() {
     showStatus('Plano restaurado.');
 
     if (targetTask) {
+      const dbId = isNumeric(id) ? Number(id) : id;
       const { error } = await supabase
         .from('tarefas')
         .update(mapToDb(targetTask, user?.id))
-        .eq('id', id);
+        .eq('id', dbId);
 
       if (error) {
         console.error('Supabase restore error:', error);
@@ -349,10 +366,11 @@ export default function App() {
     setSelectedIds((prev) => prev.filter((i) => i !== id));
     showStatus('Excluindo definitivamente...');
 
+    const dbId = isNumeric(id) ? Number(id) : id;
     const { error } = await supabase
       .from('tarefas')
       .delete()
-      .eq('id', id);
+      .eq('id', dbId);
 
     if (error) {
       console.error('Supabase delete error:', error);
@@ -395,10 +413,11 @@ export default function App() {
     setSelectedIds([]);
     showStatus('Removendo lote do banco...');
 
+    const dbIds = idsToDelete.map((id) => (isNumeric(id) ? Number(id) : id));
     const { error } = await supabase
       .from('tarefas')
       .delete()
-      .in('id', idsToDelete);
+      .in('id', dbIds);
 
     if (error) {
       console.error('Supabase bulk delete error:', error);

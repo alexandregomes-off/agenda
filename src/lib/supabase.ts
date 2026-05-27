@@ -63,7 +63,7 @@ export function mapFromDb(dbRow: any): Task {
  * Maps Task model to Supabase database payload.
  * Only outputs developer-defined columns detected dynamically in the database schema.
  */
-export function mapToDb(task: Task, userId?: string): any {
+export function mapToDb(task: Task, userId?: string, isInsert = false): any {
   // Ensure we map standard and bilingual variations safely, mapping empty strings to null or omitting undefineds
   const valOrNull = (val: any) => {
     if (val === undefined) return null;
@@ -71,70 +71,92 @@ export function mapToDb(task: Task, userId?: string): any {
     return val;
   };
 
-  const fieldMappings: { [key: string]: any } = {
-    id: task.id,
-    title: valOrNull(task.title),
-    titulo: valOrNull(task.title),
-    category: valOrNull(task.category),
-    categoria: valOrNull(task.category),
-    completed: typeof task.completed === 'boolean' ? task.completed : false,
-    concluido: typeof task.completed === 'boolean' ? task.completed : false,
-    concluida: typeof task.completed === 'boolean' ? task.completed : false,
-    due_date: valOrNull(task.due_date),
-    dueDate: valOrNull(task.due_date),
-    data_vencimento: valOrNull(task.due_date),
-    vencimento: valOrNull(task.due_date),
-    created_at: valOrNull(task.created_at),
-    createdAt: valOrNull(task.created_at),
-    data_criacao: valOrNull(task.created_at),
-    completed_at: valOrNull(task.completed_at),
-    completedAt: valOrNull(task.completed_at),
-    data_conclusao: valOrNull(task.completed_at),
-    deleted: typeof task.deleted === 'boolean' ? task.deleted : false,
-    deletado: typeof task.deleted === 'boolean' ? task.deleted : false,
-    excluido: typeof task.deleted === 'boolean' ? task.deleted : false,
-    notes: valOrNull(task.notes),
-    observacoes: valOrNull(task.notes),
-    notas: valOrNull(task.notes),
-  };
-
   const payload: any = {};
 
-  if (knownColumns.length > 0) {
-    for (const col of knownColumns) {
-      if (col in fieldMappings) {
-        payload[col] = fieldMappings[col];
-      }
-    }
-  } else {
-    // Safe default to standard snake_case
-    payload.id = task.id;
+  // If knownColumns is populated, we map to those columns specifically.
+  // Otherwise, we default strictly to the user's exact "tarefas" column list.
+  const cols = knownColumns.length > 0 ? knownColumns : [
+    'titulo', 'category', 'due_date', 'notes', 'completed', 'deleted', 'user_id', 'created_at', 'completed_at'
+  ];
+
+  if (!isInsert && isNumeric(task.id)) {
+    payload.id = Number(task.id);
+  }
+
+  // Populate columns based on detected/known schemas
+  if (cols.includes('titulo')) {
+    payload.titulo = valOrNull(task.title);
+  } else if (cols.includes('title')) {
     payload.title = valOrNull(task.title);
-    payload.category = valOrNull(task.category);
-    payload.completed = typeof task.completed === 'boolean' ? task.completed : false;
-    payload.due_date = valOrNull(task.due_date);
-    payload.created_at = valOrNull(task.created_at);
-    payload.completed_at = valOrNull(task.completed_at);
-    payload.deleted = typeof task.deleted === 'boolean' ? task.deleted : false;
-    payload.notes = valOrNull(task.notes);
   }
 
-  // Inject user_id relations on verified schema
+  if (cols.includes('category')) {
+    payload.category = valOrNull(task.category);
+  } else if (cols.includes('categoria')) {
+    payload.categoria = valOrNull(task.category);
+  }
+
+  if (cols.includes('completed')) {
+    payload.completed = typeof task.completed === 'boolean' ? task.completed : false;
+  } else if (cols.includes('concluido')) {
+    payload.concluido = typeof task.completed === 'boolean' ? task.completed : false;
+  } else if (cols.includes('concluida')) {
+    payload.concluida = typeof task.completed === 'boolean' ? task.completed : false;
+  }
+
+  if (cols.includes('due_date')) {
+    payload.due_date = valOrNull(task.due_date);
+  } else if (cols.includes('dueDate')) {
+    payload.dueDate = valOrNull(task.due_date);
+  } else if (cols.includes('data_vencimento')) {
+    payload.data_vencimento = valOrNull(task.due_date);
+  } else if (cols.includes('vencimento')) {
+    payload.vencimento = valOrNull(task.due_date);
+  }
+
+  if (cols.includes('notes')) {
+    payload.notes = valOrNull(task.notes);
+  } else if (cols.includes('observacoes')) {
+    payload.observacoes = valOrNull(task.notes);
+  } else if (cols.includes('notas')) {
+    payload.notas = valOrNull(task.notes);
+  }
+
+  if (cols.includes('deleted')) {
+    payload.deleted = typeof task.deleted === 'boolean' ? task.deleted : false;
+  } else if (cols.includes('deletado')) {
+    payload.deletado = typeof task.deleted === 'boolean' ? task.deleted : false;
+  } else if (cols.includes('excluido')) {
+    payload.excluido = typeof task.deleted === 'boolean' ? task.deleted : false;
+  }
+
+  if (cols.includes('created_at')) {
+    payload.created_at = valOrNull(task.created_at);
+  } else if (cols.includes('createdAt')) {
+    payload.createdAt = valOrNull(task.created_at);
+  } else if (cols.includes('data_criacao')) {
+    payload.data_criacao = valOrNull(task.created_at);
+  }
+
+  if (cols.includes('completed_at')) {
+    payload.completed_at = valOrNull(task.completed_at);
+  } else if (cols.includes('completedAt')) {
+    payload.completedAt = valOrNull(task.completed_at);
+  } else if (cols.includes('data_conclusao')) {
+    payload.data_conclusao = valOrNull(task.completed_at);
+  }
+
   if (userId) {
-    if (knownColumns.length > 0) {
-      if (knownColumns.includes('user_id')) {
-        payload.user_id = userId;
-      } else if (knownColumns.includes('userId')) {
-        payload.userId = userId;
-      } else if (knownColumns.includes('id_usuario')) {
-        payload.id_usuario = userId;
-      }
-    } else {
+    if (cols.includes('user_id')) {
       payload.user_id = userId;
+    } else if (cols.includes('userId')) {
+      payload.userId = userId;
+    } else if (cols.includes('id_usuario')) {
+      payload.id_usuario = userId;
     }
   }
 
-  // Dynamically purge any undefined properties to guarantee standard REST payload safety
+  // Purely clean up undefined fields
   const cleanPayload: any = {};
   for (const key of Object.keys(payload)) {
     if (payload[key] !== undefined) {
@@ -143,5 +165,11 @@ export function mapToDb(task: Task, userId?: string): any {
   }
 
   return cleanPayload;
+}
+
+export function isNumeric(str: any): boolean {
+  if (typeof str === 'number') return true;
+  if (typeof str !== 'string') return false;
+  return !isNaN(Number(str)) && !isNaN(parseFloat(str));
 }
 
