@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0f172a;
+  --color-sage: #f1f5f9;
+  --color-cream: #ffffff;
+  --color-gold: #f59e0b;
+  --color-pine: #4f46e5;
+  --color-mist: rgba(255, 255, 255, 0.85);
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Inter', sans-serif;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: #0f172a;
+}
+
+/* Custom background layout gradient matching original */
+.soft-bg {
+  background:
+    radial-gradient(circle at top left, rgba(79, 70, 229, 0.05), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.08), transparent 30%),
+    #f8fafc;
+}
+
+.glass-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+.category-work {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.category-personal {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+}
+
+.category-shopping {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-today {
+  color: #4f46e5;
+  background-color: #e0e7ff;
+}
+
+.status-future {
+  color: #0d9488;
+  background-color: #ccfbf1;
+}
+
+.status-overdue {
+  color: #b91c1c;
+  background-color: #fee2e2;
+}
+
+.status-done {
+  color: #475569;
+  background-color: #f1f5f9;
+}
+
+.status-deleted {
+  color: #b91c1c;
+  background-color: #fee2e2;
+}
